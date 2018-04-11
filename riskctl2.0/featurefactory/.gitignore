@@ -1,0 +1,17 @@
+*.log
+*.out
+*.pot
+*.pyc
+local_settings.py
+
+.idea
+.idea/
+.idea/*
+
+# log
+logs/*
+*.out
+
+.featurefactory
+.featurefactory/
+.featurefactory/*

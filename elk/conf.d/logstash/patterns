@@ -1,0 +1,2 @@
+# patten for rule-engine log
+THREAD .{15}

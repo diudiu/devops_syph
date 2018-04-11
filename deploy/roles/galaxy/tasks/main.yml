@@ -1,0 +1,7 @@
+---
+# tasks file for galaxy
+
+- include: docker_install.yml
+- include: elk.yml
+- include: de.yml
+

@@ -1,0 +1,19 @@
+[manager]
+192.168.1.220 leader=true
+
+[worker]
+192.168.1.221 leader=false
+
+[swarm:children]
+manager
+worker
+
+[manager:vars]
+roles=manager
+
+[worker:vars]
+roles=worker
+
+[swarm:vars]
+ansible_user={{ user }} 
+ansible_sudo_pass={{ pwd }}

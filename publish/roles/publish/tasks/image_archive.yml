@@ -1,0 +1,21 @@
+- name: pull images
+  docker_image:
+    name: "{{ registry }}/{{ item }}"
+    tag: latest
+  with_items: "{{ images }}"
+
+- name: Create files/images/syph-* folder
+  file:
+    path: "{{ files_path }}/images/{{ item }}"
+    state: directory
+  with_items: "{{ namespaces }}"
+
+- name: archive the specify images
+  docker_image:
+    name: "{{ registry }}/{{ item }}"
+    tag: latest
+    archive_path: "{{ files_path }}/images/{{ item }}.tar"
+  with_items: "{{ images }}"
+  become: yes
+  tags:
+    - archive

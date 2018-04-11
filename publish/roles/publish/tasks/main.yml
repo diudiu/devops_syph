@@ -1,0 +1,9 @@
+---
+# tasks file for publish
+
+- include: image_archive.yml
+- include: de.yml
+- include: docker.yml
+- include: elk.yml
+- include: generate_target.yml
+

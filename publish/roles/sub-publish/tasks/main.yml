@@ -1,0 +1,3 @@
+---
+# tasks file for sub-publish
+- include: de.yml

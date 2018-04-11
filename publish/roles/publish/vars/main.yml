@@ -1,0 +1,47 @@
+---
+# vars file for publish
+
+user: dev
+group: dev
+# devops project path
+devops_home_dir: "/home/dev"
+software_dir: "/home/dev/software"
+compose_file_dir: "/home/dev/devops/deploy/composefile"
+
+images:
+  - syph-de/nginx-de
+  - syph-de/featurefactory
+  - syph-de/rule-engine
+  - syph-de/mysql-official
+  - syph-de/mongodb
+  - syph-de/redis
+  - syph-elk/logstash:5.2.2
+  - syph-elk/elasticsearch:5.2.2
+  - syph-elk/kibana:5.2.2
+  - syph-dns/dnsmasq
+  - syph-hub/registry:2
+  - syph-hub/docker-registry-web
+
+namespaces: 
+  - syph-de
+  - syph-elk
+  - syph-dns
+  - syph-hub
+
+registry: hub:5000
+
+files_path:  "/home/dev/devops/deploy/roles/galaxy/files"
+                       
+# docker compose install vars
+docker_compose_src_path: "{{ software_dir }}/docker"
+docker_compose_dest_path: "{{ devops_home_dir }}/devops/deploy/roles/galaxy/files/docker-install"
+
+# docker infra
+docker_infra_src_path: "{{ devops_home_dir }}/devops/infra"
+docker_infra_dest_path: "{{ devops_home_dir }}/devops/deploy/roles/galaxy/files/docker-compose/infra"
+
+# elk
+docker_elk_src_path: "{{ devops_home_dir }}/devops/elk"
+docker_elk_dest_path: "{{ devops_home_dir }}/devops/deploy/roles/galaxy/files/docker-compose/elk"
+
+

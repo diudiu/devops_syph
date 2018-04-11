@@ -1,0 +1,29 @@
+version: "3"
+
+services:
+  registry:
+    restart: always
+    image: registry:2
+    ports:
+      - 5000:5000
+    #environment:
+      #REGISTRY_HTTP_TLS_CERTIFICATE: /home/dev/deploy/devops/registry/certs/hub.syph.crt
+      #REGISTRY_HTTP_TLS_KEY: /home/dev/deploy/devops/registry/certs/hub.syph.key
+      #REGISTRY_AUTH: htpasswd
+      #REGISTRY_AUTH_HTPASSWD_PATH: /auth/htpasswd
+      #REGISTRY_AUTH_HTPASSWD_REALM: Registry Realm
+    volumes:
+      - /var/local/docker/registry:/var/lib/registry
+      # - /path/certs:/certs
+      # - /path/auth:/auth
+  registry-web:
+    #image: hyper/docker-registry-web:latest
+    image: hub:5000/syph-hub/docker-registry-web:latest
+    restart: always
+    ports:
+      - 5008:8080
+    volumes:
+      #- ./ui/config.yml:/conf/config.yml:ro
+      - /var/local/docker/infra/conf/ui/config.yml:/conf/config.yml:ro
+    depends_on:
+      - registry

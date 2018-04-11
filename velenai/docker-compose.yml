@@ -1,0 +1,116 @@
+version: '3'
+
+services:
+  nginx:
+    image: 'hub:5000/syph-velen/nginx-velen:latest'
+    env_file:
+      - ./compose.env
+    ports:
+       - "8081:8081"    # ui
+       - "8082:8080"    # velenplat
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+    env_file:
+      - compose.env
+    depends_on:
+      - velen_daemon
+    networks:
+      - velen-stack
+
+  velen_daemon:
+    image: 'hub:5000/syph-velen/velenplat:latest'
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+    env_file:
+      - ./compose.env
+    environment:
+      - VELEN_ROLE=daemon
+    depends_on:
+      - mysql_master
+      - mongodb_primary
+      - redis_master
+#    logging:
+#      driver: syslog
+#      options:
+#        syslog-address: 'tcp://logstash:5047'
+    networks:
+      - velen-stack
+
+
+  velen_celery:
+    image: 'hub:5000/syph-velen/velenplat:latest'
+    env_file:
+      - ./compose.env
+    environment:
+      - VELEN_ROLE=celery
+    depends_on:
+      - mysql_master
+      - mongodb_primary
+      - redis_master
+#    logging:
+#      driver: syslog
+#      options:
+#        syslog-address: 'tcp://logstash:5046'
+    networks:
+      - velen-stack
+
+  mysql_master:
+    image: 'hub:5000/syph-infra/mysql-official:latest'
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+    env_file:
+      - ./compose.env
+    ports:
+      - '8087:3306'
+    networks:
+      - velen-stack
+    volumes:
+      - /var/local/docker/velen/mysql:/var/lib/mysql
+
+  mongodb_primary:
+    image: 'hub:5000/syph-infra/mongodb:latest'
+    deploy:
+      placement:
+        constraints:
+          #- node.role == worker
+          - node.role == manager
+    env_file:
+      - ./compose.env
+    ports:
+      - '8088:27017'
+    networks:
+      - velen-stack
+    volumes:
+      - /var/local/docker/velen/mongodb:/bitnami/mongodb
+
+  redis_master:
+    image: 'hub:5000/syph-infra/redis:latest'
+    deploy:
+      placement:
+        constraints:
+          # - node.role == worker
+          - node.role == manager
+    env_file:
+      - ./compose.env
+    ports:
+      - '8089:6379'
+    networks:
+      - velen-stack
+    volumes:
+      - /var/local/docker/velen/redis:/bitnami/redis
+
+networks:
+  velen-stack:
+#    driver: overlay
+#    ipam:
+#      driver: default
+#      config:
+#        - subnet: 172.254.31.0/21

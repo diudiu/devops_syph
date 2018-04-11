@@ -1,0 +1,30 @@
+##
+# This playbook deploys the whole app stack
+##
+
+- name: Start dask-scheduler process
+  hosts: dask-scheduler
+
+  vars:
+    user: syphml
+    anaconda_bin_path: /home/syphml/anaconda3/bin
+    anaconda_dask_scheduler_path: /home/syphml/anaconda3/envs/dask/bin/dask-scheduler
+    dask_scheduler_server_share: /home/syphml/mlnfs/dask-scheduler.json
+
+  user: "{{ user }}"
+  
+  tasks:
+
+  - name: Check dask logs dir
+    stat:
+      path: '/home/{{ user }}/dask-logs'
+    register: dask_logs_dir_check
+  
+  - when: not dask_logs_dir_check.stat.exists
+    command: 'mkdir /home/{{ user }}/dask-logs'
+
+  - name: Start dask scheduler server
+    # shell: 'nohup {{ anaconda_dask_scheduler_path }} > /home/{{ user }}/dask-logs/dask-scheduler.log 2>&1 &'
+    shell: 'nohup {{ anaconda_dask_scheduler_path }} --scheduler-file {{ dask_scheduler_server_share }}  > /home/{{ user }}/dask-logs/dask-scheduler.log 2>&1 &'
+    args:
+      executable: /bin/bash

@@ -1,0 +1,30 @@
+
+- name: Create depoly/roles/galaxy/files/docker-compose/elk/
+  file:
+    path: "{{ docker_elk_dest_path }}"
+    state: directory
+
+- name: Copy elk/docker-compose.yml to depoly/roles/galaxy/files/docker-compose/elk/docker-compose.yml
+  copy:
+    src: "{{ docker_elk_src_path }}/docker-compose.yml"
+    dest: "{{ docker_elk_dest_path }}/docker-compose.yml"
+    mode: 0755
+
+- name: Copy elk/conf.d/logstash to depoly/roles/galaxy/files/docker-compose/elk/conf/
+  copy:
+    src: "{{ docker_elk_src_path }}/conf.d/logstash/"
+    dest: "{{ docker_elk_dest_path }}/conf/"
+    mode: 0755
+
+- name: Copy elk/conf.d/kibana to depoly/roles/galaxy/files/docker-compose/elk/conf/
+  copy:
+    src: "{{ docker_elk_src_path }}/conf.d/kibana/"
+    dest: "{{ docker_elk_dest_path }}/conf/"
+    mode: 0755
+
+- name: Copy elk's compose file to deploy
+  copy:
+    src: "{{ docker_elk_src_path }}/docker-compose.yml"
+    dest: "{{ compose_file_dir }}/elk-compose.yml"
+  tags: dir
+

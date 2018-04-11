@@ -1,0 +1,14 @@
+##
+# This playbook deploys the whole app stack
+##
+- name: Deploy machine learning cluster
+  hosts: all
+  user: "{{ user }}"
+  roles:
+    - ml
+
+# Start dask scheduler
+- include: daskscheduler.yml
+
+# Start dask worker
+- include: daskworker.yml

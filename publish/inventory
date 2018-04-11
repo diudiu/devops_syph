@@ -1,0 +1,13 @@
+[docker-publish]
+192.168.1.196 ansible_user=dev ansible_become_user=root ansible_become_pass=123456
+
+[sub-publish]
+192.168.1.196   ansible_user=dev ansible_become_user=root ansible_become_pass=123456
+114.215.101.237 ansible_user=docker ansible_become_user=root ansible_become_pass=Syph!dk237
+
+#[docker-publish:vars]
+#ansible_connection=ssh
+#ansible_ssh_user=root
+#ansible_ssh_pass=12345
+#ansible_become_user=root
+#ansible_become_pass=123456

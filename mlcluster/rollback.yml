@@ -1,0 +1,7 @@
+- name: Rollback ml cluster
+  hosts: all
+  user: syphml
+  
+  tasks:
+  - name: Delete dask virtualenv
+    command: '/home/syphml/anaconda3/bin/conda env remove -n dask'

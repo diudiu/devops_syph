@@ -1,0 +1,116 @@
+#- name: Install docker-py
+#  shell: tar zxf docker-py-1.10.6.tar.gz -C /usr/local && cd /usr/local/docker-py-1.10.6 && python setup.py install
+#  args:
+#    executable: /bin/bash
+#    chdir: "deploy/roles/galaxy/files"
+#  become: yes
+#
+#- name: Install docker-compose
+#  shell: tar zxf docker-compose-1.12.0.tar.gz  -C /usr/local && cd /usr/local/docker-compose-1.12.0 && python setup.py install
+#  args:
+#    executable: /bin/bash
+#    chdir: "deploy/roles/galaxy/files"
+#  become: yes
+
+#- name: REGISTRY - start registy
+#  shell: docker stack deploy -c docker-compose.yml stk4hub
+#  args:
+#    executable: /bin/bash
+#    chdir: "deploy/roles/galaxy/files/docker-compose/infra/registry"
+#  when:
+#    - leader
+
+
+- name: Install docker compose
+  copy:
+    src: docker-install/docker-compose
+    dest: /usr/local/bin/docker-compose
+    group: docker
+    mode: 0755
+  become: yes
+
+- name: Install infra - load docker images of dnsmasq
+  docker_image:
+    name: andyshinn/dnsmasq
+    tag: 2.76
+    push: no
+    load_path: "/home/{{ user }}/dnsmasq.tar"
+  when:
+    - leader
+  tags: dns
+
+- name: Install infra - load docker images of ansible
+  docker_image:
+    name: ansible
+    tag: latest
+    push: no
+    load_path: "/home/{{ user }}/ansible.tar"
+  when: 
+    - leader
+  tags: dns
+
+- name: Install infra - load docker images of dnsmasq
+  docker_image:
+    name: hub:5000/syph-dns/dnsmasq
+    tag: latest
+    push: no
+    load_path: "deploy/roles/galaxy/files/images/syph-dns/dnsmasq.tar"
+  when:         
+    - leader
+
+- name: Install infra - load docker images of registry
+  docker_image:
+    name: hub:5000/syph-hub/registry
+    tag: 2
+    push: no
+    load_path: "deploy/roles/galaxy/files/images/syph-hub/registry:2.tar"
+  when: 
+    - leader
+
+- name: Install infra - load docker images of docker-registry-web
+  docker_image:
+    name: hub:5000/syph-hub/docker-registry-web
+    tag: latest
+    push: no
+    load_path: "deploy/roles/galaxy/files/images/syph-hub/docker-registry-web.tar"
+  when:
+    - leader
+
+- name: Install infra - make sure volumes_path is exist
+  file:
+    path: "{{ volumes_path }}"
+    state: directory
+    owner: "{{ user }}"
+    group: "{{ group }}"
+    mode: 0755
+  become: yes
+
+- name: Install infra - copy dns config file to /var/local/docker/infra/
+  copy:
+    src: "docker-compose/infra/dns/"
+    dest: "{{ volumes_path }}/infra/conf/"
+    mode: 0755
+
+- name: Install infra - copy registry config file to /var/local/docker/infra/
+  copy:
+    src: "docker-compose/infra/registry/"
+    dest: "{{ volumes_path }}/infra/conf/"
+    mode: 0755
+
+- name: DNS - start dns server
+  shell: docker-compose --file dns-compose.yml up -d
+  args:
+    executable: /bin/bash
+    chdir: "{{ compose_file_path }}"
+  when:
+    - leader
+  tags: dns
+
+- name: REGISTRY - start registy
+  shell: docker-compose --file hub-compose.yml up -d
+  args:
+    executable: /bin/bash
+    chdir: "{{ compose_file_path }}"
+  when:
+    - leader
+  tags: dns

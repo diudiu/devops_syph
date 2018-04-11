@@ -1,0 +1,99 @@
+version: '3.2'
+
+services:
+  ui:
+    image: 'hub:5000/syph-de/ui:latest'
+    env_file:
+      - ./compose.env
+    networks:
+      - de-stack
+    ports:
+      - "1901:80"
+    
+  featurefactory:
+    image: 'hub:5000/syph-de/featurefactory:latest'
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+    env_file:
+      - ./compose.env
+    environment:
+      - FEATUREFACTORY_ROLE=daemon
+#    logging:
+#      driver: syslog
+#      options:
+#        syslog-address: 'tcp://logstash:5047'
+    networks:
+      - de-stack
+    ports:
+      - "1902:1902"
+
+  featurefactory_celery:
+    image: 'hub:5000/syph-de/featurefactory:latest'
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+    env_file:
+      - ./compose.env
+    environment:
+      - FEATUREFACTORY_ROLE=celery
+#    logging:
+#      driver: syslog
+#      options:
+#        syslog-address: 'tcp://logstash:5047'
+    networks:
+      - de-stack
+
+  rule_engine:
+    image: 'hub:5000/syph-de/rule-engine:latest'
+    env_file:
+      - ./compose.env
+    ports:
+      - '1903:1903'
+#    logging:
+#      driver: syslog
+#      options:
+#        syslog-address: 'tcp://logstash:5046'
+    networks:
+      - de-stack
+
+  mysql_master:
+    image: 'hub:5000/syph-de/mysql-official:latest'
+    env_file:
+      - ./compose.env
+    ports:
+      - '8077:3306'
+    networks:
+      - de-stack
+    volumes:
+      - /var/local/docker/de/mysql:/var/lib/mysql
+
+  mongodb_primary:
+    image: 'hub:5000/syph-de/mongodb:latest'
+    env_file:
+      - ./compose.env
+    ports:
+      - '8078:27017'
+    networks:
+      - de-stack
+    volumes:
+      - /var/local/docker/de/mongodb:/bitnami/mongodb
+
+  redis_master:
+    image: 'hub:5000/syph-de/redis:latest'
+    env_file:
+      - ./compose.env
+    ports:
+      - '8079:6379'
+    networks:
+      - de-stack
+    volumes:
+      - /var/local/docker/de/redis:/bitnami/redis
+
+networks:
+  de-stack:
+    driver: overlay

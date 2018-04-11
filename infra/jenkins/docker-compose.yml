@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+  jenkins:
+    image: 'registry.cn-qingdao.aliyuncs.com/syph-infra/jenkins:latest'
+    #image: 'jenkins:latest'
+    container_name: jenks
+    restart: always
+    ports:
+      - '8890:8080'    
+      - '8891:50000'    
+    volumes:
+      - /home/syphrd/jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+      #- /usr/bin/docker:/usr/bin/docker
+    #command: bash
+    #tty: true

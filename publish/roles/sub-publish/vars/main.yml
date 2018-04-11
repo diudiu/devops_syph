@@ -1,0 +1,19 @@
+---
+# vars file for sub-publish
+
+files_path:  "/home/dev/devops/deploy/roles/galaxy/files"
+files_path_prod:  "/home/{{ ansible_user }}/deploy/roles/galaxy/files"
+
+registry: hub:5000
+
+images:
+  - syph-de/nginx-de
+  - syph-de/featurefactory
+  - syph-de/rule-engine
+
+namespaces:
+  - syph-de
+  - syph-elk
+  - syph-dns
+  - syph-hub
+

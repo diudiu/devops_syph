@@ -1,0 +1,71 @@
+---
+# tasks file for mlcluster
+
+
+- name: Check if anaconda installed
+  stat: 
+    path: '{{ anaconda_bin_path }}'
+  register: anaconda_check
+
+- when: not anaconda_check.stat.exists
+  block:
+    - name: Copy anaconda install script 
+      copy:
+        src: '{{ anaconda_version }}'
+        dest: '/home/{{ user }}/{{ anaconda_version }}'
+        owner: "{{ user }}"
+        group: "{{ group }}"
+        mode: u=rwx,g=rwx,o=r
+        force: no
+    - name: Execute installed command
+      command: '/home/{{ user }}/{{ anaconda_version }} -b -p {{ anaconda_installed_path }}'
+
+- name: Check if anaconda install success
+  command: /home/syphml/anaconda3/bin/conda -V
+
+- name: Add pip aliyun mirrors
+  copy:
+    src: 'pip.conf'
+    dest: '/home/{{ user }}/.pip/'
+    owner: "{{ user }}"
+    group: "{{ group }}"
+    mode: u=rw,g=rw,o=r
+    force: yes
+
+- name: Install system packages - step 1 update apt-get
+  become: yes
+  become_user: root
+  apt:
+    upgrade: dist
+
+- name: Install system packages - step 2 install gcc
+  become: yes
+  become_user: root
+  apt:
+    name: gcc
+    update_cache: yes
+
+- name: Install system packages - step 3 install g++
+  become: yes
+  become_user: root
+  apt:
+    name: g++
+    update_cache: yes
+
+
+- name: Check anaconda dask virtual environment
+  command: '{{ anaconda_bin_path }} env list'
+  register: anaconda_dask_virtualenv_check
+
+- when: anaconda_dask_virtualenv_check.stdout.find('dask') == -1
+  block:
+    - name: Copy virtualenv yml
+      copy:
+        src: '{{ anaconda_dask_vritualenv_file }}'
+        dest: '/tmp'
+        owner: "{{ user }}"
+        group: "{{ group }}"
+        mode: u=rwx,g=rwx,o=r
+        force: yes
+    - name: Install dask virtualenv
+      command: '{{ anaconda_bin_path }} env create -f /tmp/{{ anaconda_dask_vritualenv_file }}'

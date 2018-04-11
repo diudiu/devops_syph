@@ -1,0 +1,45 @@
+- name: pull images
+  docker_image:
+    name: "{{ registry }}/{{ item }}"
+    tag: latest
+  with_items: "{{ images }}"
+  when:  ansible_default_ipv4.address == '192.168.1.196'
+
+- name: Create files/images/syph-* folder
+  file:
+    path: "{{ files_path }}/images/{{ item }}"
+    state: directory
+  with_items: "{{ namespaces }}"
+  when:  ansible_default_ipv4.address == '192.168.1.196'
+
+- name: archive images
+  docker_image:
+    name: "{{ registry }}/{{ item }}"
+    tag: latest
+    archive_path: "{{ files_path }}/images/{{ item }}.tar"
+  with_items: "{{ images }}"
+  become: yes
+  when:  ansible_default_ipv4.address == '192.168.1.196'
+
+- name: compress images
+  archive: 
+    path: "{{ files_path }}/images/{{ item }}.tar"
+    dest: "{{ files_path }}/images/{{ item }}.tar.gz"
+  with_items: "{{ images }}"
+  when:  ansible_default_ipv4.address == '192.168.1.196'
+
+- name: copy image.tar.gz to remote
+  copy:
+    src: "{{ files_path }}/images/{{ item }}.tar.gz"
+    dest: "{{ files_path_prod }}/images/{{ item }}.tar.gz"
+  with_items: "{{ images }}"
+  when:  ansible_default_ipv4.address != '192.168.1.196'
+
+- name: remove image.tar.gz
+  file:
+    path: "{{ files_path }}/images/{{ item }}.tar"
+    state: absent
+  with_items: "{{ images }}"
+  when:  ansible_default_ipv4.address == '192.168.1.196'
+
+

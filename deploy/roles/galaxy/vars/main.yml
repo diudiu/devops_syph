@@ -1,0 +1,23 @@
+---
+# vars file for galaxy
+
+volumes_path: /var/local/docker
+compose_file_path: "/home/{{ user }}/deploy/composefile"
+
+user: docker
+group: docker
+pwd: 123456
+
+de_images:
+  - nginx-de
+  - featurefactory
+  - rule-engine
+  - mysql-official
+  - mongodb
+  - redis
+
+# elk vars
+elk_images:
+  - logstash
+  - elasticsearch
+  - kibana

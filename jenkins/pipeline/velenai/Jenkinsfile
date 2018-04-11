@@ -1,0 +1,61 @@
+node{
+  def velenplatTarget = "velenplat.tar"
+  def uiTarget = "ui.tar"
+
+
+  stage('Build velenplat'){
+      dir('vp') {
+        git url: 'https://git.coding.net/digcreditdev/velenai.git', branch: 'master', credentialsId: 'develop'
+
+        sh "cp velenplat/velenplat/celeryconfig_deploy.py velenplat/velenplat/celeryconfig.py"
+
+        sh "cp velenplat/velenplat/settings_deploy.py velenplat/velenplat/settings.py"
+
+        sh "rm -f *.tar"
+
+        sh "tar --exclude='.git' -cvf ./${velenplatTarget} ."
+      }
+  }
+
+  stage('Build ui'){
+      dir('ui') {
+        git url: 'https://git.coding.net/digcreditdev/velenai-ui.git', branch: 'master', credentialsId: 'develop'
+
+        
+        withEnv(["PATH+NODEJS=${tool 'nodejs-7'}/bin"]) {
+            sh "npm install --registry https://registry.npm.taobao.org"
+            sh "npm run build"
+        }
+   
+
+        dir('dist'){
+            sh "rm -f *.tar"
+            sh "tar -cvf ./${uiTarget} ."
+        }
+      }
+  }
+
+  stage('Build docker images'){
+    sh 'ssh -i /var/jenkins_home/secrets/ssh.key syphrd@192.168.1.100 "cd /home/syphrd/devops/devops/velenai/; python auto-build-velen.py"'
+  }
+
+/*
+  stage('Build devops'){
+    dir('devops') {
+        git url: 'https://git.coding.net/digcreditdev/devops.git', branch: 'master', credentialsId: 'develop'
+        dir('infra/dns'){
+            sh "rm -f *.tar"
+            sh "tar -cvf ./${dnsTarget} dnsmasq"
+        }
+    }
+  }
+*/
+  stage('Result'){
+	def urlPrefix = "http://jenkins:8890/job/velenai-build/lastBuild/execution/node/3/ws"
+	echo "velenplat package: ${urlPrefix}/vp/${velenplatTarget}"
+    echo "ui package: ${urlPrefix}/ui/dist/${uiTarget}"
+    echo "all docker images are available now on: http://hub:5008/"
+    echo "elk compose file: ${urlPrefix}/devops/elk/docker-compose.yml"
+  }
+}
+

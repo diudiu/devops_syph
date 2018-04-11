@@ -1,0 +1,26 @@
+version: '3'
+
+services:
+
+  mysql_master:
+    #image: 'registry.cn-hangzhou.aliyuncs.com/syphdig/mysql-repli:5.6'
+    image: 'syphdig/mysql-repli:youhua0406.9'
+    environment:
+      - MYSQL_REPLICATION_ROLE=master
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+      - MYSQL_DATABASE=featurefactory
+      - MYSQL_USER=dev
+      - MYSQL_PASSWORD=123456
+    deploy:
+      placement:
+        constraints: [node.hostname == dev1] 
+  mysql_slave:
+    #image: 'registry.cn-hangzhou.aliyuncs.com/syphdig/mysql-repli:5.6'
+    image: 'syphdig/mysql-repli:youhua0406.9'
+    environment:
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+      - MASTER_HOST=mysql_master
+      - MASTER_PORT=3306
+    deploy:
+      placement:
+        constraints: [node.hostname == dev1]

@@ -1,0 +1,88 @@
+node{
+  def reTarget = "rule-engine-2.3.0-SNAPSHOT.jar"
+  def ffTarget = "ff.tar"
+  def uiTarget = "ui.tar"
+  def dnsTarget = "dnsmasq.tar"
+  stage('Build re'){
+      dir('re') {
+        git url: 'https://git.coding.net/digcreditdev/rule-engine.git', branch: "${params.SYPH_RE}", credentialsId: 'develop'
+        try {
+            sh "mkdir src/main/resources/license/"
+        } catch(Exception ex) {
+            println("the dir is exists");
+        }
+         
+        sh "cp src/conf/application.properties src/main/resources/"
+        sh "cp rule-engine.lic src/main/resources/license/"
+        withEnv(["PATH+MAVEN=${tool 'maven-3.5.0'}/bin"]) {
+            sh "mvn clean install"
+        }
+        junit 'target/surefire-reports/*.xml'
+        sh "git rev-parse HEAD > .git/commit-id"
+        re_commit_id = readFile('.git/commit-id')
+        echo re_commit_id
+      }
+  }
+  stage('Build ff'){
+      dir('ff') {
+        git url: 'https://git.coding.net/digcreditdev/featurefactory.git', branch: "${params.SYPH_FF}", credentialsId: 'develop'
+        sh "cp featurefactory/celery_deploy.py featurefactory/celery_config.py"
+        sh "cp featurefactory/settings_deploy.py featurefactory/settings.py"
+        sh "cp apps/dispatcher/settings_deploy.py apps/dispatcher/settings.py"
+        sh "cp apps/remote/config_deploy.py apps/remote/config.py"
+        sh "rm -f *.tar"
+        sh "tar --exclude='.git' --exclude='dataocean_flask' --exclude='studio/lp_combine_handler' --exclude='studio/lp_combine_handler' --exclude='studio/lp_dataocean_handler' --exclude='studio/test' -cvf ./${ffTarget} ."
+        sh "git rev-parse HEAD > .git/commit-id"
+        ff_commit_id = readFile('.git/commit-id')
+        echo ff_commit_id
+      }
+  }
+  stage('Build ui'){
+      dir('ui') {
+        git url: 'https://git.coding.net/digcreditdev/rule-engine-ui.git', branch: "${params.SYPH_UI}", credentialsId: 'develop'
+        dir('webapp'){
+            withEnv(["PATH+NODEJS=${tool 'nodejs-7'}/bin"]) {
+                sh "npm install -g yarn@1.1.0"
+                sh "yarn install"
+                sh "npm run build"
+            }
+        }
+        dir('webapp/dist'){
+            sh "rm -f *.tar"
+            sh "tar -cvf ./${uiTarget} ."
+        }
+        sh "git rev-parse HEAD > .git/commit-id"
+        ui_commit_id = readFile('.git/commit-id')
+        echo ui_commit_id
+      }
+  }
+  
+  stage('Build devops'){
+    dir('devops') {
+        git url: 'https://git.coding.net/digcreditdev/devops.git', branch: 'master', credentialsId: 'develop'
+    }
+  }
+  
+  stage('Build docker images'){
+    sh 'ssh -i /var/jenkins_home/secrets/ssh.key syphrd@192.168.1.100 "cd /home/syphrd/jenkins_home/workspace/de-build/devops/riskctl2.0/; python auto-build.py"'
+  }
+
+  stage('Push to aliyun'){
+    sh 'ssh -i /var/jenkins_home/secrets/ssh.key syphrd@192.168.1.100 "cd /home/syphrd/jenkins_home/workspace/de-build/devops/riskctl2.0/; python push-image.py"'
+  }
+  
+  stage('Result'){
+    def urlPrefix = "http://jenkins:8890/job/de-build/lastBuild/execution/node/3/ws"
+    echo "re package: ${urlPrefix}/re/target/${reTarget}"
+    echo "ff package: ${urlPrefix}/ff/${ffTarget}"
+    echo "ui package: ${urlPrefix}/ui/webapp/dist/${uiTarget}"
+    echo "dns package: ${urlPrefix}/devops/infra/dns/${dnsTarget}"
+    echo "all docker images are available now on: http://hub:5008/"
+    echo "infra compose file: ${urlPrefix}/devops/infra/docker-compose.yml"
+    echo "de compose file: ${urlPrefix}/devops/riskctl2.0/docker-compose.yml"
+    echo "elk compose file: ${urlPrefix}/devops/elk/docker-compose.yml"
+    echo "ui commit id: ${ui_commit_id}"
+    echo "ff commit id: ${ff_commit_id}"
+    echo "re commit id: ${re_commit_id}"
+  }
+}

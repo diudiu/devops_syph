@@ -1,0 +1,16 @@
+version: '3'
+
+services:
+  mysql_master:
+    image: 'mysql:test'
+#    image: 'hub:5000/syph-de/mysql-official:latest'
+    environment:
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+      - MYSQL_DATABASE=featureleng2
+      - MYSQL_USER=devleng2
+      - MYSQL_PASSWORD=123456
+    container_name: mysql
+    ports:
+      - '3399:3306'
+    volumes:
+      - /home/syphrd/devops/devops/riskctl2.0/mysql-official/concat.sh:/concat.sh

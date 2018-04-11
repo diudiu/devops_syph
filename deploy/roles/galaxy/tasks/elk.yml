@@ -1,0 +1,34 @@
+- name: ELK - Load images for elk 
+  docker_image:
+    name: "hub:5000/syph-elk/{{ item }}"
+    tag: 5.2.2
+    push: yes
+    load_path: "deploy/roles/galaxy/files/images/syph-elk/{{ item }}:5.2.2.tar"
+  with_items: "{{ elk_images }}"
+  when:
+    - leader
+
+- name: ELK - Pull images on all nodes
+  docker_image:
+    name: "hub:5000/syph-elk/{{ item }}:5.2.2"
+  with_items: "{{ elk_images }}"
+
+- name: ELK - Copy config file
+  copy:
+    src: "docker-compose/elk/conf/"
+    dest: "{{ volumes_path }}/elk/conf/"
+    group: docker
+    mode: 0755
+
+- name: ELK - Create elasticsear data volume
+  file:
+    path: "{{ volumes_path }}/elk/data/elasticsearch"
+    state: directory
+
+- name: ELK - Start elk services
+  shell: docker stack deploy -c elk-compose.yml stk4elk
+  args:
+    executable: /bin/bash
+    chdir: "{{ compose_file_path }}"
+  when:
+    - leader

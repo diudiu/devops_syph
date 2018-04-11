@@ -1,0 +1,26 @@
+django==1.11.2
+requests==2.18.1
+djangorestframework==3.6.3
+djangorestframework-jwt==1.11.0
+django-cors-headers==2.1.0
+pymysql==0.7.11
+pymongo==3.4.0
+mongoengine==0.13.0
+django-rest-framework-mongoengine==3.3.1
+django-filter==1.0.4
+# inside of xlrd
+# openpyxl==2.4.8
+xlrd==1.0.0
+celery==4.0.2
+django-celery-results==1.0.1
+django-celery==3.1.17
+numpy==1.12.1
+scipy==0.19.1
+pandas==0.20.1
+scikit-learn==0.18.1
+matplotlib==2.0.1
+redis==2.10.5
+path.py==10.3.1
+transitions==0.5.3
+more_itertools==3.2.0
+uwsgi==2.0.4

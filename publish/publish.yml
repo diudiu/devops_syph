@@ -1,0 +1,8 @@
+##
+# This playbook deploys the whole app stack
+##
+- name: publish the decision engine
+  hosts: docker-publish
+  user: dev
+  roles:
+    - publish

@@ -1,0 +1,75 @@
+- name: DE - load images for de 
+  docker_image:
+    name: "hub:5000/syph-de/{{ item }}"
+    tag: latest
+    push: yes
+    load_path: "deploy/roles/galaxy/files/images/syph-de/{{ item }}.tar"
+  with_items: "{{ de_images }}"
+  when: 
+    - leader
+  tags: load
+
+- name: DE - pull images on all nodes
+  docker_image:
+    name: "hub:5000/syph-de/{{ item }}:latest"
+  with_items: "{{ de_images }}"
+
+# volumes for mysql
+- name: DE - make sure mysql volume is exist
+  file:
+    path: "{{ volumes_path }}/de/"
+    state: directory
+    owner: "{{ user }}"
+    group: "{{ group }}"
+
+- name: unarchive mysql.tar.gz to mysql volume 
+  unarchive:
+    src: docker-compose/de/mysql.tar.gz
+    dest: "{{ volumes_path }}/de/mysql/"
+  owner: "{{ user }}"
+  group: "{{ group }}"
+
+# volumes for mongo
+- name: DE - create data volume for mongodb
+  file:
+    path: "{{ volumes_path }}/de/mongodb/data/db"
+    state: directory
+    mode: 0755
+
+- name: DE - create conf volume for mongodb
+  file:
+    path: "{{ volumes_path }}/de/mongodb/conf"
+    state: directory
+    mode: 0755
+
+- name: DE - copy mongodb.conf to mongodb volumes
+  copy: 
+    src: "docker-compose/de/mongodb.conf"
+    dest: "{{ volumes_path }}/de/mongodb/conf/mongodb.conf"
+
+# volumes for redis
+- name: DE - create data volume for redis
+  file:
+    path: "{{ volumes_path }}/de/redis/data"
+    state: directory
+
+- name: DE - create conf volume for redis
+  file:
+    path: "{{ volumes_path }}/de/redis/conf"
+    state: directory
+
+- name: DE - copy redis.conf to redis volumes
+  copy:
+    src: "docker-compose/de/redis.conf"
+    dest: "{{ volumes_path }}/de/redis/conf/redis.conf"
+
+# start de stack
+- name: DE - Start de stack
+  shell: docker stack deploy -c de-compose.yml stk4de
+  args:
+    executable: /bin/bash
+    chdir: "{{ compose_file_path }}"
+  when:
+    - leader
+
+

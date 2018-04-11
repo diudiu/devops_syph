@@ -1,0 +1,80 @@
+version: "3"
+
+services:
+  elasticsearch:
+    image: hub:5000/syph-elk/elasticsearch:5.2.2
+    networks:
+      - elastic-stack
+    volumes:
+      - /var/local/docker/elk/data/elasticsearch:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+
+  logstash-re:
+    image: hub:5000/syph-elk/logstash:5.2.2
+    networks:
+      - elastic-stack
+    ports:
+      - "5043:5043"
+      - "5046:5046"
+    depends_on:
+      - elasticsearch
+    volumes:
+      - /var/local/docker/elk/conf/logstash-re.conf:/usr/share/logstash/pipeline/logstash.conf
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+  logstash-ff:
+    image: hub:5000/syph-elk/logstash:5.2.2
+    networks:
+      - elastic-stack
+    ports:
+      - "5047:5047"
+    depends_on:
+      - elasticsearch
+    volumes:
+      - /var/local/docker/elk/conf/logstash-ff.conf:/usr/share/logstash/pipeline/logstash.conf
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+
+  logstash-monitor:
+    image: hub:5000/syph-elk/logstash:5.2.2
+    networks:
+      - elastic-stack
+    depends_on:
+      - elasticsearch
+    volumes:
+      - /var/local/docker/elk/conf/logstash-monitor-server.conf:/usr/share/logstash/pipeline/logstash.conf
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+  kibana:
+    image: hub:5000/syph-elk/kibana:5.2.2
+    #volumes:
+    #  - /var/local/docker/elk/conf/kibana/kibana.yml:/usr/share/kibana/config/kibana.yml
+    networks:
+      - elastic-stack
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+
+networks:
+  elastic-stack:

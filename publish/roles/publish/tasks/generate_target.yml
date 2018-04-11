@@ -1,0 +1,31 @@
+- name: TAR - archive deploy 
+  archive:
+    path: "{{ devops_home_dir }}/devops/deploy"
+    dest: "{{ software_dir }}/syph/deploy.tar.gz"
+
+# archive ansible image
+- name: TAR - pull ansible/deploy image
+  docker_image:
+    name: "{{ registry }}/syph-infra/ansible"
+    tag: deploy
+
+- name: TAR - archive the specify images
+  docker_image:
+    name: "{{ registry }}/syph-infra/ansible"
+    tag: deploy
+    archive_path: "{{ software_dir }}/syph/ansible.tar"
+
+# archive dnsmasq images
+- name: TAR - pull andyshina/dnsmasq image
+  docker_image:
+    name: "andyshinn/dnsmasq"
+    tag: 2.76 
+
+- name: TAR - archive the specify images
+  docker_image:
+    name: "andyshinn/dnsmasq"
+    tag: 2.76
+    archive_path: "{{ software_dir }}/syph/dnsmasq.tar"
+
+# archive docker_install
+#- name: TAR - archive 

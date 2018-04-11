@@ -1,0 +1,11 @@
+---
+# vars file for mlcluster
+
+user: syphml
+group: syphml
+
+
+anaconda_bin_path: /home/syphml/anaconda3/bin/conda
+anaconda_version: Anaconda3-4.4.0-Linux-x86_64.sh
+anaconda_installed_path: /home/syphml/anaconda3
+anaconda_dask_vritualenv_file: py3_dask_environment.yml

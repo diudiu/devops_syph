@@ -1,0 +1,36 @@
+
+- name: Create depoly/roles/galaxy/files/docker-install
+  file: 
+    path: "{{ docker_compose_dest_path }}"
+    state: directory
+
+- name: Copy docker-compose-Linux-x86_64 to the taget directory deploy/roles/galaxy/files/docker-install/
+  copy: 
+    src: "{{ docker_compose_src_path }}/docker-compose-Linux-x86_64"
+    dest: "{{ docker_compose_dest_path }}/docker-compose"
+    owner: {{ user }}
+    group: {{ user }}
+    mode: 0755
+
+- name: Create depoly/roles/galaxy/files/docker-compose/infra
+  file:
+    path: "{{ docker_infra_dest_path }}"
+    state: directory
+
+- name: Copy infra file to deploy files (include dns and registry)
+  copy:
+    src: "{{ docker_infra_src_path }}/"
+    dest: "{{ docker_infra_dest_path }}/"
+    mode: 0755
+
+- name: Copy dnsmasq's compose file to deploy
+  template:
+    src: dns-compose.yml
+    dest: "{{ compose_file_dir }}/dns-compose.yml"
+  tags: dir
+
+- name: Copy registry's compose file to deploy
+  copy:
+   src: "{{ docker_infra_src_path }}/registry/docker-compose.yml"
+   dest: "{{ compose_file_dir }}/hub-compose.yml"
+  tags: dir

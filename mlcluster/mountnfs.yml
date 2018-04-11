@@ -1,0 +1,25 @@
+
+- name: Mount nfs
+  hosts: all
+  user: syphml
+
+  tasks:
+  - name: Install nfs client
+    become: yes
+    become_user: root
+    apt:
+      name: nfs-kernel-server
+      update_cache: yes
+  
+  - name: Check if dir `mlnfs` exists
+    stat:
+      path: '/home/syphml/mlnfs'
+    register: mlnfs_dir_check
+
+  - when: not mlnfs_dir_check.stat.exists
+    command: 'mkdir /home/syphml/mlnfs'
+  
+  - name: Mount nfs
+    become: yes
+    become_user: root
+    command: 'mount -t nfs 192.168.1.34:/home/titan/mlnfs /home/syphml/mlnfs'
